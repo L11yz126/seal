@@ -6,7 +6,11 @@ import { useState } from "react"
 import { Upload, X, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-export function FileUpload() {
+interface FileUploadProps {
+  onFileSelected?: (file: File | null) => void
+}
+
+export function FileUpload({ onFileSelected }: FileUploadProps) {
   const [file, setFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
@@ -24,27 +28,31 @@ export function FileUpload() {
     setIsDragging(false)
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      setFile(e.dataTransfer.files[0])
+      const selectedFile = e.dataTransfer.files[0]
+      setFile(selectedFile)
+      if (onFileSelected) onFileSelected(selectedFile)
     }
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0])
+      const selectedFile = e.target.files[0]
+      setFile(selectedFile)
+      if (onFileSelected) onFileSelected(selectedFile)
     }
   }
 
   const removeFile = () => {
     setFile(null)
+    if (onFileSelected) onFileSelected(null)
   }
 
   return (
     <div className="w-full">
       {!file ? (
         <div
-          className={`border-2 border-dashed rounded-lg p-6 text-center ${
-            isDragging ? "border-primary bg-primary/5" : "border-gray-300"
-          }`}
+          className={`border-2 border-dashed rounded-lg p-6 text-center ${isDragging ? "border-primary bg-primary/5" : "border-gray-300"
+            }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}

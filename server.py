@@ -1,21 +1,27 @@
-from flask import Flask, request, jsonify
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-app = Flask(__name__)
+from backend.router.detect import detect_routers
 
-# 这是你要运行的现有 Python 代码
-def your_python_code(params):
-    # 示例处理逻辑
-    result = f"处理完成: {params}"
-    return {"status": "success", "data": result}
+def server() -> FastAPI:
+    fast = FastAPI()
 
-# 定义接收点击的接口
-@app.route('/trigger', methods=['POST'])
-def handle_click():
-    # 获取前端传递的参数
-    data = request.json
-    # 执行你的代码
-    response = your_python_code(data.get('input'))
-    return jsonify(response)
+    # CORS
+    fast.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-if __name__ == '__main__':
-    app.run(debug=True)  # 启动服务
+    detect_routers(fast)
+
+    return fast
+
+
+if __name__ == "__main__":
+    app = server()
+    import uvicorn
+
+    uvicorn.run('server:server', host='0.0.0.0', port=1111, reload=True)
