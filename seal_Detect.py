@@ -162,10 +162,10 @@ class YOLO11:
         outputs = self.session.run(None, {self.input_name: img_data})
         # 后处理
         detections = self.postprocess(outputs, img_width, img_height, ratio, dw, dh)
-        return detections
+        return detections, img
 
 
-ONNX_MODEL_PATH = r"E:\毕设\yinzhang\ultralytics\runs\train\train3\weights\best.onnx"
+ONNX_MODEL_PATH = '/Users/vlou/Desktop/11/seal/runs/train/train4/weights/best.onnx'
 yolo_model = YOLO11(ONNX_MODEL_PATH)
 
 
@@ -202,4 +202,4 @@ def infer_start(img_path):
 
 
 if __name__ == "__main__":
-    infer_start(r"E:\4.jpeg")
+    infer_start(r"/Users/vlou/Desktop/11/seal/tests/images/test.png")

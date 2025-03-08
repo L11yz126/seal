@@ -11,7 +11,7 @@ from backend.database.db import get_db
 from backend.database.models import SealRecognition, BatchProcess
 from backend.tools.detect import detect
 from backend.schemas.recognition import RecognitionResponse, BatchStatusResponse, HistoryPaginationResponse
-
+from backend.minio.index import minio_handler
 
 def detect_routers(app: FastAPI):
     router = APIRouter(
@@ -186,7 +186,7 @@ def detect_routers(app: FastAPI):
                     "seals": rec.seal_count,
                     "status": rec.status,
                     "confidence": rec.confidence,
-                    "imageUrl": f"/api/files/{os.path.basename(rec.result_path)}" if rec.result_path else None
+                    "imageUrl": minio_handler.get_file_url(rec.result_object),
                 })
 
             return {
@@ -214,13 +214,6 @@ def detect_routers(app: FastAPI):
             if not record:
                 raise HTTPException(status_code=404, detail="记录不存在")
 
-            # 删除文件
-            if record.file_path and os.path.exists(record.file_path):
-                os.remove(record.file_path)
-
-            if record.result_path and os.path.exists(record.result_path):
-                os.remove(record.result_path)
-
             # 删除数据库记录
             db.delete(record)
             db.commit()
@@ -247,13 +240,9 @@ def detect_routers(app: FastAPI):
             if not record:
                 raise HTTPException(status_code=404, detail="记录不存在")
 
-            # 检查结果文件是否存在
-            if not record.result_path or not os.path.exists(record.result_path):
-                raise HTTPException(status_code=404, detail="结果文件不存在")
-
             # 返回文件
             return FileResponse(
-                path=record.result_path,
+                path=minio_handler.get_file_url(record.result_object),
                 filename=f"识别结果_{record.filename}",
                 media_type="application/octet-stream"
             )
@@ -266,25 +255,25 @@ def detect_routers(app: FastAPI):
             raise HTTPException(status_code=500, detail=f"下载历史记录失败: {str(e)}")
 
     # 静态文件服务
-    @router.get('/files/{filename}')
-    async def get_file(filename: str):
-        """
-        获取静态文件
-        """
-        try:
-            # 检查文件是否存在
-            file_path = os.path.join(os.getcwd(), "results", filename)
-            if not os.path.exists(file_path):
-                raise HTTPException(status_code=404, detail="文件不存在")
+    # @router.get('/files/{filename}')
+    # async def get_file(filename: str):
+    #     """
+    #     获取静态文件
+    #     """
+    #     try:
+    #         # 检查文件是否存在
+    #         file_path = os.path.join(os.getcwd(), "results", filename)
+    #         if not os.path.exists(file_path):
+    #             raise HTTPException(status_code=404, detail="文件不存在")
 
-            # 返回文件
-            return FileResponse(path=file_path)
+    #         # 返回文件
+    #         return FileResponse(path=file_path)
 
-        except HTTPException:
-            raise
-        except Exception as e:
-            # 记录错误并返回错误响应
-            print(f"获取文件时出错: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"获取文件失败: {str(e)}")
+    #     except HTTPException:
+    #         raise
+    #     except Exception as e:
+    #         # 记录错误并返回错误响应
+    #         print(f"获取文件时出错: {str(e)}")
+    #         raise HTTPException(status_code=500, detail=f"获取文件失败: {str(e)}")
 
     return app.include_router(router=router)

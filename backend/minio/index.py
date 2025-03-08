@@ -78,6 +78,25 @@ class MinioHandler:
         except S3Error as e:
             logger.error(f"获取文件地址失败: {e}")
             return None
+    
+    def get_object(self, object_name: str, bucket_name: str = MINIO['bucket_name']):
+        if not self.client:
+            logger.error("MinIO 客户端未初始化")
+            return None
+
+        try:
+            object = self.client.get_object(
+                bucket_name, object_name)
+            return object
+        except S3Error as e:
+            logger.error(f"获取文件object失败: {e}")
+            return None
+    
+    def put_buffer(self, object_name, buffer: io.BytesIO, content_type: str, bucket_name: str = MINIO['bucket_name']):
+        buffer.seek(0)
+        self.client.put_object(bucket_name, object_name, data=buffer,
+                               length=len(buffer.getvalue()),
+                               content_type=content_type)
 
 
 # 创建 MinioHandler 实例

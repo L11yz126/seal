@@ -174,3 +174,4 @@ cython_debug/
 .vscode
 .DS_Store
 scripts/.DS_Store
+/tmp
