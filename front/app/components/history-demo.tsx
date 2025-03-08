@@ -47,6 +47,7 @@ export function HistoryDemo() {
 
   useEffect(() => {
     fetchHistory()
+    console.log('查列表--')
   }, [page, searchTerm])
 
   const handleSearch = (e: { preventDefault: () => void }) => {
