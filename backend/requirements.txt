@@ -1,4 +1,4 @@
-fastapi==0.111.0
+fastapi==0.115.11
 fastapi-cors==0.0.6
 environs==11.0.0
 
