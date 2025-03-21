@@ -146,6 +146,22 @@ class YOLO11:
         indices = cv2.dnn.NMSBoxes(boxes, scores, self.confidence_thres, self.iou_thres)
         detections = [boxes[i] for i in indices]
         return detections
+    
+        filtered_boxes = []
+        for box in detections:
+            if all(self._calc_distance(box,exist_box) >self.min_seal_distance
+                   for exist_box in filtered_boxes):
+                filtered_boxes.append(box)
+        return filtered_boxes
+    
+    def _calc_distance(box1, box2):
+        """计算两个印章中心点间距"""
+        x1 = box1[0] + box1[2]/2
+        y1 = box1[1] + box1[3]/2
+        x2 = box2[0] + box2[2]/2
+        y2 = box2[1] + box2[3]/2
+        return np.sqrt((x1-x2)**2 + (y1-y2)**2)
+
 
     def detect_objects(self, image_path):
         """
@@ -153,53 +169,127 @@ class YOLO11:
         参数：
             image_path: 输入图像的路径。
         返回：
-            list: 包含检测结果的坐标列表 [x, y, w, h]。
+            tuple: (检测框列表, 印章数量, 图像对象)
         """
-        img = cv2.imread(image_path)
-        # 预处理
-        img_data, ratio, dw, dh, img_width, img_height = self.pre_image(img)
-        # 推理
-        outputs = self.session.run(None, {self.input_name: img_data})
-        # 后处理
-        detections = self.postprocess(outputs, img_width, img_height, ratio, dw, dh)
-        return detections, img
+        try:
+            # 读取图像
+            img = cv2.imread(image_path)
+            if img is None:
+                raise FileNotFoundError(f"无法读取图像: {image_path}")
+            
+            # 预处理
+            img_data, ratio, dw, dh, img_width, img_height = self.pre_image(img)
+            
+            # 推理
+            outputs = self.session.run(None, {self.input_name: img_data})
+            
+            # 后处理
+            detections = self.postprocess(outputs, img_width, img_height, ratio, dw, dh)
+            
+            # 正确返回（确保return在函数体内）
+            return detections, img
+
+        except Exception as e:
+            print(f"检测出错: {str(e)}")
+            return [], None
 
 
-ONNX_MODEL_PATH = '/Users/vlou/Desktop/11/seal/runs/train/train4/weights/best.onnx'
+    
+  
+    
+    def batch_detect(self, img_list, workers=4):
+        """多线程批量检测"""
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            results = list(executor.map(self.detect_objects, img_list))
+        return [{
+            "path": path,
+            "count": count,
+            "boxes": boxes,
+            "timestamp": datetime.now().isoformat()
+        } for (boxes, count, _), path in zip(results, img_list)]
+
+ONNX_MODEL_PATH = 'E:/beshe/yinzhang/ultralytics/runs/train/train3/weights/best.onnx'
 yolo_model = YOLO11(ONNX_MODEL_PATH)
 
 
+def visualize_results(image, detections, count):
+    """增强可视化功能"""
+    # 绘制检测框
+    for (x, y, w, h) in detections:
+        cv2.rectangle(image, (x, y), (x+w, y+h), (0,0,255), 3)
+    
+    # 添加数量统计信息
+    cv2.putText(image, f"Seals: {count}", (20, 60), 
+               cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 3)
+    
+    # 添加统计图表
+    chart = generate_count_chart(count)
+    image[10:160, -170:-10] = cv2.resize(chart, (160, 150))
+    
+    return image
+
+def generate_count_chart(count):
+    """生成统计饼图"""
+    fig = plt.figure(figsize=(2,2), dpi=80)
+    plt.pie([count, 1], labels=["", ""], colors=["#ff9999", "white"], 
+           wedgeprops={'edgecolor':'black'})
+    plt.title(f"Total: {count}", fontsize=10)
+    fig.canvas.draw()
+    img = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+    img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    plt.close()
+    return cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+
+def save_results(img_path, count, boxes):
+    """保存检测结果到JSON"""
+    result = {
+        "image_path": img_path,
+        "timestamp": datetime.now().isoformat(),
+        "seal_count": count,
+        "boxes": [{"x":x, "y":y, "w":w, "h":h} for (x,y,w,h) in boxes]
+    }
+    with open("detection_logs.json", "a") as f:
+        f.write(json.dumps(result) + "\n")
+
+def infer_start(img_path, show_result=True):
+    """增强版检测流程"""
+    try:
+        # 执行检测
+        detections, count, image = yolo_model.detect_objects(img_path)
+        
+        if count == 0:
+            print("未检测到印章")
+            return 0
+        
+        # 可视化与保存
+        visualized_img = visualize_results(image.copy(), detections, count)
+        save_results(img_path, count, detections)
+        
+        if show_result:
+            safe_show("Detection Result", visualized_img)
+            
+        return count
+        
+    except Exception as e:
+        print(f"处理失败: {str(e)}")
+        return -1
+
 def safe_show(name, image):
-    resize_height = 1600
-    resize_width = 900
-    if image.shape[0] > resize_height:
-        rate = max(image.shape[0] / resize_height, image.shape[1] / resize_width)
-        image = cv2.resize(image, (int(image.shape[1] / rate), int(image.shape[0] / rate)))
-    cv2.imshow(name.encode('gbk').decode(errors='ignore'), image)
+    """自适应显示窗口"""
+    max_height = 900
+    if image.shape[0] > max_height:
+        ratio = max_height / image.shape[0]
+        image = cv2.resize(image, (int(image.shape[1]*ratio), max_height))
+    cv2.imshow(name, image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-
-def infer_start(img_path):
-    result_bbox = []
-    image = cv2.imread(img_path)
-    detections = yolo_model.detect_objects(img_path)
-
-    has_red_seal = len(detections) > 0
-
-    if not has_red_seal:
-        1
-        return []
-
-    for bbox in detections:
-        x_min, y_min, w, h = bbox
-        x_max = x_min + w
-        y_max = y_min + h
-        result_bbox.append([x_min, y_min, x_max, y_max])
-        cv2.rectangle(image, (x_min, y_min), (x_max, y_max), (0, 0, 255), 5)
-    safe_show("123", image)
-    return result_bbox
-
-
 if __name__ == "__main__":
-    infer_start(r"/Users/vlou/Desktop/11/seal/tests/images/test.png")
+    # 单图检测
+    test_img = r"E:\beshe\1.jpg"
+    seal_count = infer_start(test_img)
+    print(f"检测到 {seal_count} 个印章")
+    
+    # 批量检测示例
+    # batch_results = yolo_model.batch_detect(["img1.jpg", "img2.jpg"])
+    # print(f"批量检测结果: {batch_results}")

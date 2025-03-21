@@ -37,17 +37,17 @@ def server() -> FastAPI:
     detect_routers(fast)
 
     # 挂载静态文件目录
-    fast.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-    fast.mount("/results", StaticFiles(directory="results"), name="results")
+    # fast.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+    # fast.mount("/results", StaticFiles(directory="results"), name="results")
 
-    @fast.on_event("startup")
-    async def startup_event():
-        """
-        应用启动时执行的事件
-        """
-        logger.info("印章识别系统API服务已启动")
-        # 再次确保数据库表已创建
-        init_db()
+    # @fast.event("startup")
+    # async def startup_event():
+    #     """
+    #     应用启动时执行的事件
+    #     """
+    #     logger.info("印章识别系统API服务已启动")
+    #     # 再次确保数据库表已创建
+    #     init_db()
 
     return fast
 

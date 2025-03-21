@@ -4,7 +4,7 @@ from ultralytics import YOLO
 
 if __name__ == '__main__':
 
-    model = YOLO(model=r"E:\毕设\yinzhang\ultralytics\runs\train\train3\weights\best.pt")
+    model = YOLO(model=r"E:\beshe\yinzhang\ultralytics\runs\train\train3\weights\best.pt")
     results = model.predict(source=r"D:\image\1.png",
                             save=True,
                             show=False,

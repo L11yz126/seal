@@ -119,7 +119,7 @@ export function RecognitionDemo() {
                     已识别
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 bg-primary/80 text-white p-3">
-                    <p className="text-lg font-medium">识别到{result?.sealCount || 1}个印章</p>
+                    <p className="text-lg font-medium">识别到{result?.sealCount || 0}个印章</p>
                   </div>
                 </div>
 

@@ -1,8 +1,8 @@
 # MinIO配置
 MINIO = {
     'endpoint': 'localhost:30005',
-    'access_key': 'lqusIGWMwtcFkLwmMx0d',
-    'secret_key': 'U6YcJ7kOXq83WwEcicuWY6buKPL772n3zywvyA3t',
+    'access_key': '9tOlhn8qrgqBV5Alp7Nx',
+    'secret_key': '8UEAQsRbURfApSetQLHKyA3LDAwabcAf3UTe4HJY',
     'bucket_name': 'seal-recognition'
 }
 
@@ -10,7 +10,7 @@ MINIO = {
 DATABASE = {
     'host': 'localhost',
     'port': '5432',
-    'username': 'vlou',
-    'password': 'vlou_postgres',
+    'username': '11',
+    'password': '11_postgres',
     'dbname': 'detect'
 }

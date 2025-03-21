@@ -10,8 +10,8 @@
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: ../datasets/VOC
-train: E:\毕设\印章检测训练数据集\dataset\train # train images (relative to 'path')  16551 images
-val: E:\毕设\印章检测训练数据集\dataset\val # val images (relative to 'path')  4952 images
+train: E:\beshe\印章检测训练数据集\dataset\train # train images (relative to 'path')  16551 images
+val: E:\beshe\印章检测训练数据集\dataset\val # val images (relative to 'path')  4952 images
 nc: 1
 
 # Class names

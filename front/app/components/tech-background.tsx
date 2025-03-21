@@ -18,11 +18,12 @@ export function TechBackground() {
               </p>
               <h3 className="text-lg font-medium mb-2">核心算法</h3>
               <ul className="list-disc list-inside text-gray-600 space-y-1">
-                <li>图像预处理：去噪、增强、二值化</li>
-                <li>印章定位：基于颜色和形状特征</li>
-                <li>特征提取：使用CNN提取印章特征</li>
-                <li>印章匹配：与印章库进行比对</li>
-                <li>文字识别：OCR技术识别印章文字</li>
+                <li>图像预处理：动态尺寸匹配、色彩空间优化、数据增强策略</li>
+                <li>印章定位：检测模型架构、位置回归机制</li>
+                <li>特征提取：深度可卷积分离、特征增强模块</li>
+                <li>印章匹配：特征编码体系</li>
+                <li>创新技术突破：动态特征金字塔</li>
+
               </ul>
             </div>
             <div className="flex flex-col space-y-4">

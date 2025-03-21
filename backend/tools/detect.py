@@ -41,7 +41,7 @@ def get_onnx_path():
     return onnx_model_path
 
 
-yolo_model = YOLO11(get_onnx_path())
+yolo_model = YOLO11("E:/beshe/yinzhang/ultralytics/runs/train/train3/weights/best.onnx")
 
 
 def read_image_from_minio(object_name):
@@ -64,6 +64,8 @@ def save_image_to_minio(object_name, image):
 def detect_start(image_path):
     result_bbox = []
     detections, image = yolo_model.detect_objects(image_path)
+
+    num = len(detections)
 
     has_red_seal = len(detections) > 0
 
@@ -146,6 +148,9 @@ async def detect(file: UploadFile = File(...), db: Session = Depends(get_db)):
 
         # 处理完毕后，可以删除临时文件
         os.remove(local_img_path)
+
+        # result_box是识别到的印章坐标，所以有多少个那么就是多少个印章
+        seal_count = len(result_bbox)
 
         # 生成结果图像对象名称
         result_object = f"results/result_{file_id}{file_extension}"

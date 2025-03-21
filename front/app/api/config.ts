@@ -1,4 +1,4 @@
 
 
 
-export const SERVER_HOST = "http://localhost:1111"
+export const SERVER_HOST = "http://192.168.3.1:1111"
