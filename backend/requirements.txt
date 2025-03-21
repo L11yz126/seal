@@ -3,7 +3,7 @@ fastapi-cors==0.0.6
 environs==11.0.0
 
 python-multipart
-sqlalchemy==2.0.20
+sqlalchemy==2.0.39
 psycopg2-binary==2.9.7
 sqlalchemy-utils==0.41.1
 pydantic==2.3.0
