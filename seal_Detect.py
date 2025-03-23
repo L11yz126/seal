@@ -208,7 +208,9 @@ class YOLO11:
             "timestamp": datetime.now().isoformat()
         } for (boxes, count, _), path in zip(results, img_list)]
 
-ONNX_MODEL_PATH = 'E:/beshe/yinzhang/ultralytics/runs/train/train3/weights/best.onnx'
+
+ONNX_MODEL_PATH = '/Users/vlou/Desktop/11/seal/runs/train/train3/weights/best.onnx'
+# ONNX_MODEL_PATH = 'E:/beshe/yinzhang/ultralytics/runs/train/train3/weights/best.onnx'
 yolo_model = YOLO11(ONNX_MODEL_PATH)
 
 

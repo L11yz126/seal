@@ -41,7 +41,9 @@ def get_onnx_path():
     return onnx_model_path
 
 
-yolo_model = YOLO11("E:/beshe/yinzhang/ultralytics/runs/train/train3/weights/best.onnx")
+# ONNX_MODEL_PATH = '/Users/vlou/Desktop/11/seal/runs/train/train3/weights/best.onnx'
+ONNX_MODEL_PATH = 'E:/beshe/yinzhang/ultralytics/runs/train/train3/weights/best.onnx'
+yolo_model = YOLO11(ONNX_MODEL_PATH)
 
 
 def read_image_from_minio(object_name):
@@ -77,7 +79,9 @@ def detect_start(image_path):
         x_max = x_min + w
         y_max = y_min + h
         result_bbox.append([x_min, y_min, x_max, y_max])
-        cv2.rectangle(image, (x_min, y_min), (x_max, y_max), (0, 0, 255), 5)
+        cv2.rectangle(image, (x_min, y_min), (x_max, y_max), (0, 255, 0), 5)
+        cv2.putText(image, "recognized", (x_min, min(y_min - 10, y_min)),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
     return image, result_bbox
 
 
@@ -133,7 +137,7 @@ async def detect(file: UploadFile = File(...), db: Session = Depends(get_db)):
 
         # 模拟印章识别过程
         # 在实际应用中，这里应该调用真实的印章识别算法
-        seal_count = 1
+        seal_count = 0
         seal_type = "公司公章"
         seal_text = "XX科技有限公司"
         confidence = 98.0
@@ -169,7 +173,7 @@ async def detect(file: UploadFile = File(...), db: Session = Depends(get_db)):
             seal_type=seal_type,
             seal_text=seal_text,
             confidence=confidence,
-            status=status
+            status=status if seal_count > 0 else "无印章"
         )
 
         # 保存到数据库

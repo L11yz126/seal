@@ -7,8 +7,10 @@ export interface FileType {
     status: 'complete' | 'processing' | 'waiting' | 'error';
     result: string;
     confidence: number;
+    sealCount: number;
     progress: number;
     file?: any
+    fileUrl?: string
 }
 
 export interface ListItem {

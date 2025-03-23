@@ -44,7 +44,7 @@ class SealRecognition(Base):
     seal_count = Column(Integer, default=0)
     seal_type = Column(String, nullable=True)
     seal_text = Column(String, nullable=True)
-    confidence = Column(Float, default=0.0)
+    confidence = Column(Float, default=0.0) # 这个可信度没啥用
     status = Column(String, default="处理中")  # 处理中, 有效, 无效, 无印章
     created_at = Column(DateTime, default=datetime.now)
     # 仍然保留外键ID，但不使用relationship

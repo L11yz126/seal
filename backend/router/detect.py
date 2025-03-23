@@ -1,4 +1,4 @@
-from fastapi import APIRouter, FastAPI, File, UploadFile, Form, Depends, HTTPException, Query
+from fastapi import APIRouter, FastAPI, File, UploadFile, Form, Depends, HTTPException, Query, Body
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -72,7 +72,7 @@ def detect_routers(app: FastAPI):
             raise HTTPException(status_code=500, detail=f"批处理失败: {str(e)}")
 
     # 获取批处理状态
-    @router.get('/batch-process')
+    @router.get('/batch-process/status')
     async def get_batch_status(batchId: str = Query(...), db: Session = Depends(get_db)):
         """
         获取批处理作业的状态
@@ -98,12 +98,12 @@ def detect_routers(app: FastAPI):
             for rec in recognitions:
                 files.append({
                     "id": rec.id,
+                    "sealCount": rec.seal_count,
                     "name": rec.original_filename,
-                    "size": os.path.getsize(rec.file_path) if os.path.exists(rec.file_path) else 0,
                     "status": "complete" if rec.status in ["有效", "无效", "无印章"] else "processing",
                     "result": rec.status,
-                    "confidence": rec.confidence,
-                    "progress": 100 if rec.status in ["有效", "无效", "无印章"] else 45
+                    "progress": 100 if rec.status in ["有效", "无效", "无印章"] else 45,
+                    "fileUrl": minio_handler.get_file_url(rec.result_object)
                 })
 
             return {
@@ -112,9 +112,6 @@ def detect_routers(app: FastAPI):
                 "progress": progress,
                 "files": files
             }
-
-        except HTTPException:
-            raise
         except Exception as e:
             # 记录错误并返回错误响应
             print(f"获取批处理状态时出错: {str(e)}")
@@ -226,6 +223,36 @@ def detect_routers(app: FastAPI):
             # 记录错误并返回错误响应
             print(f"删除历史记录时出错: {str(e)}")
             raise HTTPException(status_code=500, detail=f"删除历史记录失败: {str(e)}")
+
+    # 批量删除历史记录
+    @router.delete('/history/batch')
+    async def batch_delete_history(ids: List[int] = Body(..., embed=True), db: Session = Depends(get_db)):
+        """
+        批量删除印章识别历史记录
+        """
+        try:
+            if not ids or len(ids) == 0:
+                raise HTTPException(status_code=400, detail="未提供要删除的记录ID")
+                
+            # 查询并删除记录
+            deleted_count = 0
+            for id in ids:
+                record = db.query(SealRecognition).filter(SealRecognition.id == id).first()
+                if record:
+                    db.delete(record)
+                    deleted_count += 1
+            
+            # 提交事务
+            db.commit()
+            
+            return {"message": f"成功删除{deleted_count}条记录"}
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            # 记录错误并返回错误响应
+            print(f"批量删除历史记录时出错: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"批量删除历史记录失败: {str(e)}")
 
     # 下载历史记录报告
     @router.get('/history/{id}/download')

@@ -47,15 +47,20 @@ export function FileUpload({ onFileSelected }: FileUploadProps) {
     if (onFileSelected) onFileSelected(null)
   }
 
+  const triggerFileInput = () => {
+    document.getElementById('file-upload')?.click()
+  }
+
   return (
     <div className="w-full">
       {!file ? (
         <div
-          className={`border-2 border-dashed rounded-lg p-6 text-center ${isDragging ? "border-primary bg-primary/5" : "border-gray-300"
+          className={`border-2 border-dashed cursor-pointer rounded-lg p-6 text-center ${isDragging ? "border-primary bg-primary/5" : "border-gray-300"
             }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          onClick={triggerFileInput}
         >
           <div className="flex flex-col items-center justify-center space-y-3">
             <div className="p-3 bg-primary/10 rounded-full">
