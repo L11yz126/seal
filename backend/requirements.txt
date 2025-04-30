@@ -7,4 +7,4 @@ sqlalchemy==2.0.20
 psycopg2-binary==2.9.7
 sqlalchemy-utils==0.41.1
 pydantic==2.3.0
-minio==7.1.15
+minio==7.2.15
